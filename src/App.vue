@@ -1,17 +1,17 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
+import {tiposInteres} from "@/services/finance/finance.service.js";
 export default {
   components: { RouterLink, RouterView },
   data(){
     return{
       logged_entity: null,
-      credits: null
+      credits: null,
     }
   },
   methods:{
     checkAndAddDefaultUsers() {
-      let forceOverwrite = false
-
+      let forceOverwrite = true
       let users = JSON.parse(localStorage.getItem('users'));
       let business = JSON.parse(localStorage.getItem('business'));
       let credits = JSON.parse(localStorage.getItem('credits'))
@@ -61,6 +61,8 @@ export default {
             ruc: '12345678901',
             correo: 'root@empresa.com',
             celular: '123456789',
+            tasaInteres: 0.2,
+            tipoInteres: tiposInteres[0],
           },
           {
             id: 2,
@@ -71,6 +73,8 @@ export default {
             ruc: '10987654321',
             correo: 'carlos.perez@gmail.com',
             celular: '0987654321',
+            tasaInteres: 0.16,
+            tipoInteres: tiposInteres[1],
           },
           {
             id: 3,
@@ -81,6 +85,8 @@ export default {
             ruc: '11223344556',
             correo: 'maria.garcia@hotmail.com',
             celular: '1122334455',
+            tasaInteres: 0.4,
+            tipoInteres: tiposInteres[2],
           }
         ]
         localStorage.setItem('business', JSON.stringify(business));
@@ -88,44 +94,69 @@ export default {
       if (!credits || credits.length < 5 || forceOverwrite){
         credits = [
           {
-            business_name: "root",
-            business_id: 1,
-            user_name: "admin",
-            user_id: 1,
-            amount: 1000.00,
-            date: Date.now()
+            nombre_empresa: business[0].nombre,
+            id_empresa: business[0].id,
+            nombre_usuario: users[0].nombre,
+            id_usuario: users[0].id,
+            monto: 1000.00,
+            montoOriginal: 1000.00,
+            fecha: Date.now(),
+            cuotas: 3,
+            cuotasPagadas: 0,
+            tipoInteres: business[0].tipoInteres,
+            tasaInteres: business[0].tasaInteres,
           },
           {
-            business_name: "Tarket",
-            business_id: 2,
-            user_name: "admin",
-            user_id: 1,
-            amount: 455.90,
-            date: Date.now()
+            nombre_empresa: business[1].nombre,
+            id_empresa: business[1].id,
+            nombre_usuario: users[0].nombre,
+            id_usuario: users[0].id,
+            monto: 455.90,
+            montoOriginal: 455.90,
+            fecha: Date.now(),
+            cuotas: 6,
+            cuotasPagadas: 0,
+            tipoInteres:  business[1].tipoInteres,
+            tasaInteres: business[1].tasaInteres,
           },
           {
-            business_name: "huacariz",
-            business_id: 3,
-            user_name: "fernando",
-            user_id: 2,
-            amount: 390.00,
-            date: Date.now()
+            nombre_empresa: business[2].nombre,
+            id_empresa: business[2].id,
+            nombre_usuario: users[1].nombre,
+            id_usuario: users[1].id,
+            monto: 390.00,
+            montoOriginal: 390.00,
+            fecha: Date.now(),
+            cuotas: 12,
+            cuotasPagadas: 0,
+            tipoInteres:  business[2].tipoInteres,
+            tasaInteres: business[2].tasaInteres,
           },
           {
-            business_name: "huacariz",
-            business_id: 3,
-            user_name: "maria",
-            user_id: 3,
-            amount: 500.00,
-            date: Date.now()
+            nombre_empresa: business[2].nombre,
+            id_empresa: business[2].id,
+            nombre_usuario: users[2].nombre,
+            id_usuario: users[2].id,
+            monto: 500.00,
+            montoOriginal: 500.00,
+            fecha: Date.now(),
+            cuotas: 12,
+            cuotasPagadas: 0,
+            tipoInteres:  business[2].tipoInteres,
+            tasaInteres: business[2].tasaInteres,
           },
           {
-            business_name: "Tarket",
-            business_id: 2,
-            user_name: "fernando",
-            user_id: 2,
-            amount: 850.00,
-            date: Date.now()
+            nombre_empresa: business[1].nombre,
+            id_empresa: business[1].id,
+            nombre_usuario: users[1].nombre,
+            id_usuario: users[1].id,
+            monto: 850.00,
+            montoOriginal: 850.00,
+            fecha: Date.now(),
+            cuotas: 12,
+            cuotasPagadas: 0,
+            tasaInteres: business[1].tasaInteres,
+            tipoInteres: business[1].tipoInteres,
           }
         ]
         localStorage.setItem('credits', JSON.stringify(credits));
@@ -135,44 +166,71 @@ export default {
       //alert(usuario)
       this.logged_entity = user
       const credits = JSON.parse(localStorage.getItem('credits')) || [];
-      this.credits = credits.filter(credit => credit.user_id === user.id);
+      this.credits = credits.filter(credit => credit.id_usuario === user.id);
       this.logged_entity.credit = 0
       for (let i = 0; i < this.credits.length; i++) {
-        this.logged_entity.credit += this.credits[i].amount;
-        console.log(this.credits[i].amount)
+        this.logged_entity.credit += this.credits[i].monto;
+        console.log(this.credits[i].monto)
       }
       this.$router.push("/users/dashboard")
     },
     businessLogged(business){
       this.logged_entity = business
       const credits = JSON.parse(localStorage.getItem('credits')) || [];
-      this.credits = credits.filter(credit => credit.business_id === business.id);
+      this.credits = credits.filter(credit => credit.id_empresa === business.id);
       this.logged_entity.credit = 0
       for (let i = 0; i < this.credits.length; i++) {
-        this.logged_entity.credit += this.credits[i].amount;
+        this.logged_entity.credit += this.credits[i].monto;
       }
       this.$router.push("/business/dashboard")
     },
-    generateCreditFromUser(amount, user, business) {
+    generateCreditFromUser(monto, usuario, negocio, cuotas, tasaInteres, tipoInteres) {
       let credits = JSON.parse(localStorage.getItem('credits')) || [];
       const newCredit = {
-        business_name: business.nombre,
-        business_id: business.id,
-        user_name: user.nombre,
-        user_id: user.id,
-        amount: amount,
-        date: Date.now(),
+        nombre_empresa: negocio.nombre,
+        id_empresa: negocio.id,
+        nombre_usuario: usuario.nombre,
+        id_usuario: usuario.id,
+        monto: monto,
+        montoOriginal: monto,
+        fecha: Date.now(),
+        cuotas: cuotas,
+        cuotasPagadas: 0,
+        tasaInteres: tasaInteres,
+        tipoInteres: tipoInteres,
       };
       credits.push(newCredit);
-      console.log(newCredit)
       localStorage.setItem('credits', JSON.stringify(credits));
-      this.userLogged(user)
+      this.userLogged(usuario)
+    },
+    payCredit(toBePaid){
+      let credits = JSON.parse(localStorage.getItem('credits')) || [];
+      let index = credits.findIndex(credit =>
+          credit.id_usuario === toBePaid.id_usuario &&
+          credit.id_empresa === toBePaid.id_empresa &&
+          credit.fecha === toBePaid.fecha
+      );
+      if(index === -1) {
+        alert("Ocurrio un error extraño al tratar de pagar el credito. " +
+            "Prueba iniciar sesión nuevamente y volver a intentarlo");
+        return
+      }
+      credits[index].cuotasPagadas = (toBePaid.cuotasPagadas || 0) + 1;
+      //Si ya se pagaron todos los creditos, sacalo
+      if(credits[index].cuotasPagadas === credits[index].cuotas)
+        credits.splice(index, 1);
+      localStorage.setItem('credits', JSON.stringify(credits));
+      alert("Pago realizado con éxito")
+      if(this.logged_entity.dni)
+        this.userLogged(this.logged_entity)
+      else
+        this.businessLogged(this.logged_entity)
     },
     logOut(){
       this.logged_entity = null;
       this.$router.push('/type-selection')
       localStorage.removeItem("logged_entity")
-    }
+    },
   },
   created() {
     this.checkAndAddDefaultUsers();
@@ -198,12 +256,15 @@ export default {
         @userLogged="userLogged"
         @businessLogged="businessLogged"
         @generateCreditFromUser="generateCreditFromUser"
+        @payCredit="payCredit"
         :account="logged_entity"
         :credits="credits"
     />
   </main>
   <footer>
-    ©copyright CrediZone 2024
+    <div class="flex-row">
+       ©CrediZone 2024 - Todos los derechos reservados
+    </div>
   </footer>
 </template>
 
@@ -237,5 +298,15 @@ main {
   justify-content: center;
   margin: auto;
   min-height: calc(100vh - 8rem);
+}
+.flex-row{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  justify-items: center;
+  gap: 0.1rem;
+  width: 100%;
 }
 </style>

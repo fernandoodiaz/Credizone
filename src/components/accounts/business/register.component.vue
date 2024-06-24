@@ -1,18 +1,7 @@
 <script>
-import 'primevue/resources/themes/saga-blue/theme.css';
-import 'primevue/resources/primevue.min.css';
-import 'primeicons/primeicons.css';
-import InputText from 'primevue/inputtext';
-import InputNumber from 'primevue/inputnumber';
-import Button from 'primevue/button';
-
+import {tiposInteres} from "@/services/finance/finance.service.js";
 export default {
   name: 'RegisterUser',
-  components: {
-    InputText,
-    InputNumber,
-    Button,
-  },
   data() {
     return {
       nombre: '',
@@ -21,6 +10,9 @@ export default {
       correo: '',
       celular: '',
       estado_negocio: true,
+      tasaInteres: null,
+      tipoInteres: null,
+      tiposInteres: tiposInteres,
     };
   },
   methods: {
@@ -31,11 +23,11 @@ export default {
 
         // Obtener el ID más alto y asignar un nuevo ID
         const maxId = business.reduce((max, user) => Math.max(max, user.id), 0);
-        const business_id = maxId + 1;
+        const id_empresa = maxId + 1;
 
         // Crear un nuevo usuario
         const newUser = {
-          id: business_id,
+          id: id_empresa,
           nombre: this.nombre,
           Contrasena: this.Contrasena,
           Fecha_creacion: new Date().toISOString(),
@@ -44,6 +36,8 @@ export default {
           correo: this.correo,
           celular: this.celular,
           credit: 0.0,
+          tipoInteres: this.tipoInteres,
+          tasaInteres: this.tasaInteres,
         };
 
         // Añadir el nuevo usuario a la lista de usuarios
@@ -70,6 +64,8 @@ export default {
       <InputText v-model="ruc" placeholder="RUC"></InputText>
       <InputText v-model="correo" placeholder="Correo"></InputText>
       <InputText v-model="celular" placeholder="Celular"></InputText>
+      <Dropdown v-model="tipoInteres" :options="tiposInteres" placeholder="Seleccione un tipo de tasa"/>
+      <InputNumber v-model="tasaInteres" :useGrouping="false" :minFractionDigits="0" :maxFractionDigits="4" :min="0.0001" suffix="%" placeholder="Ingrese el porcentaje de la tasa"/>
       <Button type="submit" label="Registrar"></Button>
     </form>
   </div>

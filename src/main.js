@@ -12,6 +12,7 @@ import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Divider from 'primevue/divider';
 import Dropdown from "primevue/dropdown";
+import Tooltip from 'primevue/tooltip';
 
 
 const app = createApp(App)
@@ -23,4 +24,5 @@ app.component('InputText', InputText)
 app.component('InputNumber', InputNumber)
 app.component('Divider', Divider)
 app.component('Dropdown',Dropdown)
+app.directive('tooltip', Tooltip)
 app.mount('#app')

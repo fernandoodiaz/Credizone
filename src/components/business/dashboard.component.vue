@@ -1,5 +1,8 @@
 <script>
+import {calcula_cuota} from "@/services/finance/finance.service.js";
+import paymentsCalendarComponent from "@/components/users/credits/payments.calendar.component.vue";
 export default {
+  components: {paymentsCalendarComponent},
   name: 'Dashboard Compañías',
   props: {
     account: {
@@ -8,26 +11,26 @@ export default {
     },
     credits: null,
   },
-  data() {
-    return {
-
-    };
+  methods: {
+    calcula_cuota: calcula_cuota,
+    openSupportPage(){
+      window.open("https://web.whatsapp.com/send?phone=51933284911", '_blank');
+    },
   },
+  data(){
+    return {
+      selectedCredit: null,
+    }
+  }
 };
 </script>
 <template>
   <div class="dashboard">
     <h1>Credizone Business Dashboard</h1>
-    <div class="">
-      <h4>Bienvenido, {{account.nombre}}</h4>
-      <p>Ha concedido créditos por el valor de S/ {{account.credit}}</p>
-      <div class="actions">
-        <Button>Revisar Solicitudes de Créditos</Button>
-        <Button>Ver créditos actuales</Button>
-      </div>
-    </div>
+    <h4>Bienvenido, {{account.nombre}}</h4>
+    <p>Ha concedido créditos por el valor de S/ {{account.credit}}</p>
+    <h3>Créditos aprobados:</h3>
     <div v-if="credits">
-      <h3>Créditos aprobados:</h3>
       <div class="credit-container">
         <Divider/>
         <div class="credit">
@@ -38,21 +41,27 @@ export default {
           <Divider layout="vertical"/>
           <div class="credit-part">Monto del Préstamo</div>
           <Divider layout="vertical"/>
+          <div class="credit-part">Ver pagos pendientes</div>
+          <Divider layout="vertical"/>
         </div>
         <Divider/>
         <div v-for="credit in credits" :key="credit.id">
           <div  class="credit">
             <Divider layout="vertical"/>
             <div class="credit-part">
-              {{credit.business_name}}
+              {{credit.nombre_empresa}}
             </div>
             <Divider layout="vertical"/>
             <div class="credit-part">
-              {{credit.user_name}}
+              {{credit.nombre_usuario}}
             </div>
             <Divider layout="vertical"/>
             <div class="credit-part">
-              S/. {{credit.amount}}
+              S/. {{credit.monto}}
+            </div>
+            <Divider layout="vertical"/>
+            <div class="credit-part">
+              <Button label="Ver pagos pendientes" @click="selectedCredit = credit"/>
             </div>
             <Divider layout="vertical"/>
           </div>
@@ -60,6 +69,16 @@ export default {
         </div>
       </div>
     </div>
+  </div>
+  <paymentsCalendarComponent
+      :mensual-quote="calcula_cuota(selectedCredit.tasaInteres, selectedCredit.tipoInteres, selectedCredit.montoOriginal, selectedCredit.cuotas, 0)"
+      :cuotas="selectedCredit.cuotas - selectedCredit.cuotasPagadas"
+      @close="selectedCredit = false"
+      v-if="selectedCredit"
+  />
+  <div class="fly-right" @click="openSupportPage">
+    <img src="/support.png" height="50">
+    <div>Soporte Tecnico</div>
   </div>
 </template>
 <style scoped>
@@ -70,7 +89,15 @@ export default {
   cursor: pointer;
 }
 .dashboard{
-  width: 92%
+  width: 92%;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+}
+.credit-dashboard{
+  width: 80%;
 }
 .actions{
   display: flex;
@@ -79,13 +106,11 @@ export default {
   gap: 0.5rem;
 }
 .credit-container{
-  width: 80%;
   display: flex;
   flex-direction: column;
   align-content: center;
   justify-content: center;
   padding: 0.5rem;
-  gap: 0.5rem;
 }
 .credit{
   display: flex;
@@ -99,18 +124,32 @@ export default {
   align-content: center;
   justify-content: center;
   width: 100%;
+  padding: 0.5rem;
 }
 .p-divider{
   margin: 0;
 }
 .p-divider-horizontal{
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
   width: auto;
 }
 .p-divider-vertical{
   margin-left: 0;
   margin-right: 0;
   width: 2rem;
+}
+.fly-right{
+  display: flex;
+  flex-direction: column;
+  justify-items: center;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 1rem;
 }
 </style>
